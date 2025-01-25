@@ -1,7 +1,6 @@
 const express = require('express');
-const multer = require('multer');
-const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -12,14 +11,14 @@ db.serialize(() => {
     db.run("CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT)");
 });
 
-// Настройка статических файлов
 app.use(express.static('public'));
 app.use(express.json());
 
-// Загрузка сообщений из базы данных
+// Загрузка сообщений
 app.get('/messages', (req, res) => {
     db.all("SELECT * FROM messages ORDER BY id DESC", (err, rows) => {
         if (err) {
+            console.error('Database read error:', err);
             return res.status(500).send('Database error');
         }
         res.json(rows);
@@ -36,6 +35,7 @@ app.post('/message', (req, res) => {
 
     db.run("INSERT INTO messages (text) VALUES (?)", [text], function (err) {
         if (err) {
+            console.error('Database write error:', err);
             return res.status(500).send('Database error');
         }
         res.status(200).send({ id: this.lastID, text });
