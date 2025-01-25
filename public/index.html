@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MBook V.2</title>
+</head>
+<body>
+    <h1>Upload Image</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="image" accept="image/*" required>
+        <button type="submit">Upload</button>
+    </form>
+
+    <h2>Uploaded Images</h2>
+    <div id="imageGallery"></div>
+
+    <script>
+        const uploadForm = document.getElementById('uploadForm');
+        const imageGallery = document.getElementById('imageGallery');
+
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(uploadForm);
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const img = document.createElement('img');
+                img.src = data.imageUrl;
+                img.width = 200;
+                imageGallery.appendChild(img);
+            } else {
+                alert('Upload failed');
+            }
+        });
+    </script>
+</body>
+</html>
