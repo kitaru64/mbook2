@@ -4,14 +4,14 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
-const db = new Database('messages.db');
+const db = new Database('messages.db', { verbose: console.log });
 
 // Создание таблицы, если она не существует
 db.serialize(() => {
-    db.run("CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT)");
+  const stmt = db.prepare('SELECT * FROM messages');
+  const rows = stmt.all();
+  console.log(rows);
 });
-
-app.use(express.static('public'));
 app.use(express.json());
 
 // Загрузка сообщений
