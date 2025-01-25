@@ -1,35 +1,45 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const sqlite3 = require('sqlite3').verbose();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Настройка хранения изображений
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, './uploads/');
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    },
+const db = new sqlite3.Database('./messages.db');
+
+// Создание таблицы, если она не существует
+db.serialize(() => {
+    db.run("CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT)");
 });
-const upload = multer({ storage: storage });
 
-// Создание папки для загрузки изображений
-const fs = require('fs');
-if (!fs.existsSync('./uploads')) {
-    fs.mkdirSync('./uploads');
-}
-
-// Статический файл для фронтенда
+// Настройка статических файлов
 app.use(express.static('public'));
+app.use(express.json());
 
-// Загрузка изображений
-app.post('/upload', upload.single('image'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).send('No file uploaded');
+// Загрузка сообщений из базы данных
+app.get('/messages', (req, res) => {
+    db.all("SELECT * FROM messages ORDER BY id DESC", (err, rows) => {
+        if (err) {
+            return res.status(500).send('Database error');
+        }
+        res.json(rows);
+    });
+});
+
+// Добавление нового сообщения
+app.post('/message', (req, res) => {
+    const { text } = req.body;
+
+    if (!text || text.trim() === "") {
+        return res.status(400).send('Message cannot be empty');
     }
-    res.status(200).send({ imageUrl: `/uploads/${req.file.filename}` });
+
+    db.run("INSERT INTO messages (text) VALUES (?)", [text], function (err) {
+        if (err) {
+            return res.status(500).send('Database error');
+        }
+        res.status(200).send({ id: this.lastID, text });
+    });
 });
 
 // Главная страница

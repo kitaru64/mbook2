@@ -3,41 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MBook V.2</title>
+    <title>Anonymous Message Board</title>
 </head>
 <body>
-    <h1>Upload Image</h1>
-    <form id="uploadForm" enctype="multipart/form-data">
-        <input type="file" name="image" accept="image/*" required>
-        <button type="submit">Upload</button>
+    <h1>Anonymous Message Board</h1>
+
+    <form id="messageForm">
+        <textarea id="messageText" placeholder="Write a message..." required></textarea>
+        <button type="submit">Send</button>
     </form>
 
-    <h2>Uploaded Images</h2>
-    <div id="imageGallery"></div>
+    <h2>Message Feed</h2>
+    <div id="messageFeed"></div>
 
     <script>
-        const uploadForm = document.getElementById('uploadForm');
-        const imageGallery = document.getElementById('imageGallery');
+        const messageForm = document.getElementById('messageForm');
+        const messageText = document.getElementById('messageText');
+        const messageFeed = document.getElementById('messageFeed');
 
-        uploadForm.addEventListener('submit', async (e) => {
+        // Загрузка сообщений из базы данных
+        async function loadMessages() {
+            const response = await fetch('/messages');
+            const messages = await response.json();
+
+            messageFeed.innerHTML = messages.map(msg => 
+                `<div><strong>Anonymous:</strong> ${msg.text}</div>`
+            ).join('');
+        }
+
+        // Отправка нового сообщения
+        messageForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const formData = new FormData(uploadForm);
-            const response = await fetch('/upload', {
+            const response = await fetch('/message', {
                 method: 'POST',
-                body: formData,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: messageText.value })
             });
 
             if (response.ok) {
-                const data = await response.json();
-                const img = document.createElement('img');
-                img.src = data.imageUrl;
-                img.width = 200;
-                imageGallery.appendChild(img);
+                messageText.value = ''; // Очистить поле ввода
+                loadMessages(); // Перезагрузить ленту сообщений
             } else {
-                alert('Upload failed');
+                alert('Failed to send message');
             }
         });
+
+        // Загрузить сообщения при загрузке страницы
+        loadMessages();
     </script>
 </body>
 </html>
