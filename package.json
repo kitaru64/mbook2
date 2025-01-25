@@ -18,8 +18,8 @@
   },
   "homepage": "https://github.com/kitaru64/mbook2#readme",
   "dependencies": {
+    "better-sqlite3": "^11.8.1",
     "express": "^4.21.2",
-    "multer": "^1.4.5-lts.1",
-    "sqlite3": "^5.1.7"
+    "multer": "^1.4.5-lts.1"
   }
 }

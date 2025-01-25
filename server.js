@@ -1,10 +1,10 @@
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
+const Database = require('better-sqlite3');
 const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
-const db = new sqlite3.Database('./messages.db');
+const db = new Database('messages.db');
 
 // Создание таблицы, если она не существует
 db.serialize(() => {
